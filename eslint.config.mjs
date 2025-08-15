@@ -24,8 +24,8 @@ export default antfu({
     'react/prop-types': 'off',
     'unused-imports/no-unused-vars': 'off',
     // 禁用导致栈溢出的缩进规则
-     'style/indent': 'off',
-     '@stylistic/indent': 'off',
+    //  'style/indent': 'off',
+    //  '@stylistic/indent': 'off',
     //  禁用嵌套组件
     'react/no-nested-components': 'off',
   },

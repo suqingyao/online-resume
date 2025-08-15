@@ -85,44 +85,36 @@ export const ResumePreview: React.FC = () => {
           )}
           {personalInfo.linkedin && (
             <div className="flex items-center gap-1">
-              <div className="i-heroicons-link h-3.5 w-3.5" />
+              <div className="i-mingcute-linkedin-line h-3.5 w-3.5" />
               <span>{personalInfo.linkedin}</span>
             </div>
           )}
           {personalInfo.github && (
             <div className="flex items-center gap-1">
-              <div className="i-heroicons-code-bracket h-3.5 w-3.5" />
+              <div className="i-mingcute-github-line h-3.5 w-3.5" />
               <span>{personalInfo.github}</span>
             </div>
           )}
         </div>
 
         {personalInfo.summary && (
-          <div className="mt-4 text-gray-700 leading-relaxed">
-            {personalInfo.summaryMarkdown
-              ? (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                    className="prose-sm max-w-none prose"
-                    components={{
-                      p: ({ children }) => <p className="mb-2">{children}</p>,
-                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                      em: ({ children }) => <em className="italic">{children}</em>,
-                      code: ({ children }) => <code className="rounded bg-gray-100 px-1 py-0.5 text-sm">{children}</code>,
-                      a: ({ href, children }) => <a href={href} className="text-blue-600 hover:underline">{children}</a>,
-                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
-                      li: ({ children }) => <li>{children}</li>,
-                    }}
-                  >
-                    {personalInfo.summary}
-                  </ReactMarkdown>
-                )
-              : (
-                  <p>{personalInfo.summary}</p>
-                )}
-          </div>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw, rehypeSanitize]}
+            className="prose-sm max-w-none prose"
+            components={{
+              p: ({ children }) => <p className="mb-2">{children}</p>,
+              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+              em: ({ children }) => <em className="italic">{children}</em>,
+              code: ({ children }) => <code className="rounded bg-gray-100 px-1 py-0.5 text-sm">{children}</code>,
+              a: ({ href, children }) => <a href={href} className="text-primary hover:underline">{children}</a>,
+              ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
+              li: ({ children }) => <li>{children}</li>,
+            }}
+          >
+            {personalInfo.summary}
+          </ReactMarkdown>
         )}
       </header>
 
@@ -160,29 +152,23 @@ export const ResumePreview: React.FC = () => {
               </div>
               {exp.description && (
                 <div className="mb-3 text-gray-700">
-                  {exp.descriptionMarkdown
-                    ? (
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                          className="prose-sm max-w-none prose"
-                          components={{
-                            p: ({ children }) => <p className="mb-2">{children}</p>,
-                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                            em: ({ children }) => <em className="italic">{children}</em>,
-                            code: ({ children }) => <code className="rounded bg-gray-100 px-1 py-0.5 text-sm">{children}</code>,
-                            a: ({ href, children }) => <a href={href} className="text-blue-600 hover:underline">{children}</a>,
-                            ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
-                            ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
-                            li: ({ children }) => <li>{children}</li>,
-                          }}
-                        >
-                          {exp.description}
-                        </ReactMarkdown>
-                      )
-                    : (
-                        <p>{exp.description}</p>
-                      )}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                    className="prose-sm max-w-none prose"
+                    components={{
+                      p: ({ children }) => <p className="mb-2">{children}</p>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      code: ({ children }) => <code className="rounded bg-gray-100 px-1 py-0.5 text-sm">{children}</code>,
+                      a: ({ href, children }) => <a href={href} className="text-primary hover:underline">{children}</a>,
+                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
+                      li: ({ children }) => <li>{children}</li>,
+                    }}
+                  >
+                    {exp.description}
+                  </ReactMarkdown>
                 </div>
               )}
               {exp.achievements.length > 0 && (
@@ -223,7 +209,7 @@ export const ResumePreview: React.FC = () => {
                               strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                               em: ({ children }) => <em className="italic">{children}</em>,
                               code: ({ children }) => <code className="rounded bg-gray-100 px-1 py-0.5 text-sm">{children}</code>,
-                              a: ({ href, children }) => <a href={href} className="text-blue-600 hover:underline">{children}</a>,
+                              a: ({ href, children }) => <a href={href} className="text-primary hover:underline">{children}</a>,
                               ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
                               ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
                               li: ({ children }) => <li>{children}</li>,
@@ -275,12 +261,12 @@ export const ResumePreview: React.FC = () => {
 
               <div className="mt-2 flex gap-4 text-sm">
                 {project.url && (
-                  <a href={project.url} className="text-blue-600 hover:underline">
+                  <a href={project.url} className="text-primary hover:underline">
                     项目链接
                   </a>
                 )}
                 {project.github && (
-                  <a href={project.github} className="text-blue-600 hover:underline">
+                  <a href={project.github} className="text-primary hover:underline">
                     GitHub
                   </a>
                 )}
@@ -341,7 +327,7 @@ export const ResumePreview: React.FC = () => {
                             strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                             em: ({ children }) => <em className="italic">{children}</em>,
                             code: ({ children }) => <code className="rounded bg-gray-100 px-1 py-0.5 text-sm">{children}</code>,
-                            a: ({ href, children }) => <a href={href} className="text-blue-600 hover:underline">{children}</a>,
+                            a: ({ href, children }) => <a href={href} className="text-primary hover:underline">{children}</a>,
                             ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
                             ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
                             li: ({ children }) => <li>{children}</li>,
