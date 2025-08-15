@@ -18,7 +18,7 @@ export function Toolbar() {
       const element = document.getElementById('resume-preview');
       if (element) {
         await exportToPDF(element, {
-          filename: `${resumeData.personalInfo.name}-简历.pdf`,
+          filename: `${resumeData.profile.name}-简历.pdf`,
         });
         toast.success('PDF导出成功！');
       }
@@ -39,7 +39,7 @@ export function Toolbar() {
     try {
       const element = document.getElementById('resume-preview');
       if (element) {
-        await exportToImage(element, `${resumeData.personalInfo.name}-简历.png`);
+        await exportToImage(element, `${resumeData.profile.name}-简历.png`);
         toast.success('图片导出成功！');
       }
     }

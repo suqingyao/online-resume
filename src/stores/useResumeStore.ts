@@ -14,7 +14,7 @@ interface ResumeState {
  * 简历操作接口
  */
 interface ResumeActions {
-  updatePersonalInfo: (info: Partial<ResumeData['personalInfo']>) => void;
+  updatePersonalInfo: (info: Partial<ResumeData['profile']>) => void;
   updateEducation: (education: ResumeData['education']) => void;
   updateExperience: (experience: ResumeData['experience']) => void;
   updateProjects: (projects: ResumeData['projects']) => void;
@@ -41,7 +41,7 @@ export const useResumeStore = create<ResumeState & ResumeActions>(set => ({
     set(state => ({
       resumeData: {
         ...state.resumeData,
-        personalInfo: { ...state.resumeData.personalInfo, ...info },
+        profile: { ...state.resumeData.profile, ...info },
       },
     })),
 

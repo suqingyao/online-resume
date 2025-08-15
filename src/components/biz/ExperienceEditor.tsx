@@ -1,13 +1,11 @@
-import { Checkbox } from '@radix-ui/react-checkbox';
 import { DateUtils } from '~/lib/dateUtils';
 import { useResumeStore } from '~/stores/useResumeStore';
-import { Button, DatePicker, Input, Label } from '../ui';
+import { Button, Checkbox, DatePicker, Input, Label } from '../ui';
 import { MarkdownEditor } from './MarkdownEditor';
 
 export const ExperienceEditor: React.FC = () => {
   const {
     resumeData,
-    config,
     updateExperience,
   } = useResumeStore();
 
@@ -137,8 +135,8 @@ export const ExperienceEditor: React.FC = () => {
                   }}
                   className="text-sm text-gray-600"
                 >
-                  至今
                 </Checkbox>
+                <Label> 至今</Label>
               </div>
             </div>
             <div className="grid w-full max-w-sm items-center gap-3">

@@ -1,4 +1,5 @@
 import { ResumeEditor, ResumePreview } from '../biz';
+import { ScrollArea } from '../ui';
 
 interface Props {
   viewMode: 'edit' | 'preview' | 'split';
@@ -13,8 +14,8 @@ export function Main({ viewMode }: Props) {
             <div className="overflow-hidden">
               <ResumeEditor />
             </div>
-            <div className="overflow-y-auto rounded-lg bg-gray-100 p-4 lg:p-6">
-              <div className="flex justify-center">
+            <div className="h-full rounded-lg bg-gray-100 p-4 lg:p-6">
+              <div className="flex justify-center overflow-y-auto">
                 <ResumePreview />
               </div>
             </div>

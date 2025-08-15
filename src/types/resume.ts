@@ -3,7 +3,7 @@
  */
 
 // 个人信息接口
-export interface PersonalInfo {
+export interface Profile {
   name: string;
   title: string;
   email: string;
@@ -82,7 +82,7 @@ export interface Certificate {
 
 // 完整简历数据接口
 export interface ResumeData {
-  personalInfo: PersonalInfo;
+  profile: Profile;
   education: Education[];
   experience: Experience[];
   projects: Project[];

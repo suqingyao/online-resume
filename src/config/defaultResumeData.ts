@@ -5,7 +5,7 @@ import type { ResumeConfig, ResumeData } from '../types/resume';
  * Default resume data configuration
  */
 export const defaultResumeData: ResumeData = {
-  personalInfo: {
+  profile: {
     name: '张三',
     title: '前端开发工程师',
     email: 'zhangsan@example.com',
