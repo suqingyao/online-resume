@@ -1,16 +1,105 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useCallback, useEffect } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { DateUtils } from '~/lib/dateUtils';
 import { useResumeStore } from '~/stores/useResumeStore';
-import { Button, DatePicker, Input, Label } from '../ui';
+import { Button, DatePicker, Input } from '../ui';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/Form';
 import { MarkdownEditor } from './MarkdownEditor';
 
-export function EducationEditor() {
+// 定义 Education 表单的 Zod schema
+const educationSchema = z.object({
+  id: z.string(),
+  school: z.string().min(1, '学校名称不能为空'),
+  degree: z.string().min(1, '学历不能为空'),
+  major: z.string().min(1, '专业不能为空'),
+  startDate: z.string().min(1, '开始时间不能为空'),
+  endDate: z.string().min(1, '结束时间不能为空'),
+  gpa: z.string().optional(),
+  description: z.string().optional(),
+  descriptionMarkdown: z.boolean().optional(),
+}).refine((data) => {
+  // 结束时间不能早于开始时间
+  if (data.endDate && data.startDate && data.endDate < data.startDate) {
+    return false;
+  }
+  return true;
+}, {
+  message: '结束时间必须晚于开始时间',
+  path: ['endDate'],
+});
+
+type EducationFormValues = z.infer<typeof educationSchema>;
+
+export const EducationEditor: React.FC = () => {
   const { resumeData, updateEducation } = useResumeStore();
+
+  // 使用 react-hook-form 管理整个表单
+  const form = useForm<{
+    educations: EducationFormValues[];
+  }>({
+    resolver: zodResolver(
+      z.object({
+        educations: z.array(educationSchema),
+      }),
+    ),
+    defaultValues: {
+      educations: resumeData.education.map(edu => ({
+        ...edu,
+        description: edu.description || '',
+        gpa: edu.gpa || '',
+      })),
+    },
+    mode: 'onChange',
+  });
+
+  // 使用 useFieldArray 管理动态的 education 数组
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'educations',
+  });
+
+  // 防抖函数
+  const debounce = (func: (...args: any[]) => void, wait: number) => {
+    let timeout: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+
+  // 防抖更新教育经历
+  const debouncedUpdateEducation = useCallback(
+    debounce((values: EducationFormValues[]) => {
+      updateEducation(values as unknown as typeof resumeData.education);
+    }, 300),
+    [updateEducation],
+  );
+
+  // 监听表单值变化，自动提交
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value.educations) {
+        debouncedUpdateEducation(value.educations);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, debouncedUpdateEducation]);
+
+  /**
+   * 手动触发表单验证
+   */
+  const validateForm = async () => {
+    const isValid = await form.trigger();
+    return isValid;
+  };
 
   /**
    * 添加新的教育经历
    */
   const addEducation = () => {
-    const newEducation = {
+    const newEducation: EducationFormValues = {
       id: Date.now().toString(),
       school: '',
       degree: '',
@@ -19,174 +108,174 @@ export function EducationEditor() {
       endDate: '',
       gpa: '',
       description: '',
+      descriptionMarkdown: false,
     };
-    updateEducation([...resumeData.education, newEducation]);
-  };
-
-  /**
-   * 删除教育经历
-   */
-  const removeEducation = (id: string) => {
-    updateEducation(resumeData.education.filter(edu => edu.id !== id));
+    append(newEducation);
   };
 
   return (
-    <div className="space-y-4">
+    <div className="grid gap-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-base text-gray-900 font-medium sm:text-lg">教育经历</h3>
+        <h3 className="text-base text-gray-900 font-medium">教育经历</h3>
         <Button
           onClick={addEducation}
-          variant="default"
+          variant="outline"
           size="sm"
-          className="px-2 py-1.5 text-xs sm:px-3 sm:py-2 sm:text-sm"
         >
-          <div className="i-heroicons-plus h-3 w-3 sm:mr-1 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">添加教育经历</span>
+          <div className="i-heroicons-plus h-3 w-3 mr-1" />
+          <span className="text-sm">添加教育经历</span>
         </Button>
       </div>
 
-      {resumeData.education.map((edu, index) => (
-        <div key={edu.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
-          <div className="mb-3 flex items-start justify-between sm:mb-4">
-            <h4 className="text-sm text-gray-900 font-medium sm:text-base">
-              教育经历
-              {index + 1}
-            </h4>
-            <Button
-              onClick={() => removeEducation(edu.id)}
-              variant="destructive"
-              size="sm"
-            >
-              <div className="i-heroicons-trash h-4 w-4" />
-            </Button>
-          </div>
+      <Form {...form}>
+        <div className="grid grid-cols-1 gap-4 flex-1">
+          {fields.map((field, index) => (
+            <React.Fragment key={field.id}>
+            <div className="border border-gray-200 rounded-lg p-3">
+              <div className="mb-3 flex items-start justify-between">
+                <h4 className="text-sm text-gray-900 font-medium">
+                  教育经历
+                  {index + 1}
+                </h4>
+                <Button
+                  onClick={() => remove(index)}
+                  variant="destructive"
+                  size="sm"
+                >
+                  <div className="i-heroicons-trash h-4 w-4" />
+                </Button>
+              </div>
 
-          <div className="grid grid-cols-1 mb-3 gap-3 sm:grid-cols-2 sm:mb-4 sm:gap-4">
-            <div className="grid w-full max-w-sm items-center gap-3">
-              <Label htmlFor="school">学校名称 *</Label>
-              <Input
-                id="school"
-                type="text"
-                value={edu.school}
-                onChange={(e) => {
-                  const updated = resumeData.education.map(item =>
-                    item.id === edu.id ? { ...item, school: e.target.value } : item,
-                  );
-                  updateEducation(updated);
-                }}
-                placeholder="请输入学校名称"
-              />
+              <form className="grid mb-3 gap-3 grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name={`educations.${index}.school`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>学校名称 *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="请输入学校名称"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`educations.${index}.degree`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>学历 *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="如：本科、硕士、博士"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`educations.${index}.major`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>专业 *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="请输入专业名称"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`educations.${index}.gpa`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>GPA</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="如：3.8/4.0"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`educations.${index}.startDate`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>开始时间 *</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={DateUtils.toDate(field.value)}
+                          onChange={(value) => {
+                            field.onChange(value);
+                          }}
+                          placeholder="选择开始时间"
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`educations.${index}.endDate`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>结束时间 *</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={DateUtils.toDate(field.value)}
+                          onChange={(value) => {
+                            field.onChange(value);
+                          }}
+                          placeholder="选择结束时间"
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
             </div>
-            <div className="grid w-full max-w-sm items-center gap-3">
-              <Label htmlFor="degree">学历 *</Label>
-              <Input
-                id="degree"
-                type="text"
-                value={edu.degree}
-                onChange={(e) => {
-                  const updated = resumeData.education.map(item =>
-                    item.id === edu.id ? { ...item, degree: e.target.value } : item,
-                  );
-                  updateEducation(updated);
-                }}
-                placeholder="如：本科、硕士、博士"
-              />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-3">
-              <Label htmlFor="major">专业 *</Label>
-              <Input
-                type="text"
-                value={edu.major}
-                onChange={(e) => {
-                  const updated = resumeData.education.map(item =>
-                    item.id === edu.id ? { ...item, major: e.target.value } : item,
-                  );
-                  updateEducation(updated);
-                }}
-                placeholder="请输入专业名称"
-              />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-3">
-              <Label htmlFor="gpa">GPA</Label>
-              <Input
-                id="gpa"
-                type="text"
-                value={edu.gpa || ''}
-                onChange={(e) => {
-                  const updated = resumeData.education.map(item =>
-                    item.id === edu.id ? { ...item, gpa: e.target.value } : item,
-                  );
-                  updateEducation(updated);
-                }}
-                placeholder="如：3.8/4.0"
-              />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-3">
-              <Label htmlFor="startDate">开始时间 *</Label>
-              <DatePicker
-                value={DateUtils.toDate(edu.startDate)}
-                onChange={(value) => {
-                  const updated = resumeData.education.map(item =>
-                    item.id === edu.id ? { ...item, startDate: value } : item,
-                  );
-                  updateEducation(updated);
-                }}
-                placeholder="选择开始时间"
-                className="w-full"
-              />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-3">
-              <Label htmlFor="endDate">结束时间 *</Label>
-              <DatePicker
-                value={DateUtils.toDate(edu.endDate)}
-                onChange={(value) => {
-                  const updated = resumeData.education.map(item =>
-                    item.id === edu.id ? { ...item, endDate: value } : item,
-                  );
-                  updateEducation(updated);
-                }}
-                placeholder="选择结束时间"
-                className="w-full"
-              />
-            </div>
-          </div>
 
-          <div className="mb-4">
-            <div className="grid w-full items-center gap-3">
-              <Label>
-                教育描述
-              </Label>
-            </div>
-            {edu.descriptionMarkdown
-              ? (
-                  <MarkdownEditor
-                    value={edu.description || ''}
-                    onChange={(value) => {
-                      const updated = resumeData.education.map(item =>
-                        item.id === edu.id ? { ...item, description: value } : item,
-                      );
-                      updateEducation(updated);
-                    }}
-                    placeholder="请描述您的教育背景、主要课程、获得荣誉等...\n\n支持Markdown格式：\n- **主要课程**: 数据结构、算法设计\n- *获得荣誉*: 优秀学生奖学金\n- `相关技能`: 掌握了编程基础\n- [学校官网](url)"
-                  />
-                )
-              : (
-                  <textarea
-                    className="w-full"
-                    rows={3}
-                    value={edu.description}
-                    onChange={(e) => {
-                      const updated = resumeData.education.map(item =>
-                        item.id === edu.id ? { ...item, description: e.target.value } : item,
-                      );
-                      updateEducation(updated);
-                    }}
-                    placeholder="请描述您的教育背景、主要课程、获得荣誉等..."
-                  />
+            <div className="flex flex-col w-full gap-3">
+              <FormField
+                control={form.control}
+                name={`educations.${index}.description`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>教育描述</FormLabel>
+                    <FormControl>
+                      <MarkdownEditor
+                        value={field.value || ''}
+                        onChange={value => field.onChange(value)}
+                        placeholder="请描述您的教育背景、主要课程、获得荣誉等...\n\n支持Markdown格式：\n- **主要课程**: 数据结构、算法设计\n- *获得荣誉*: 优秀学生奖学金\n- `相关技能`: 掌握了编程基础\n- [学校官网](url)"
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
-          </div>
+              />
+            </div>
+            </React.Fragment>
+          ))}
         </div>
-      ))}
+      </Form>
     </div>
   );
-}
+};

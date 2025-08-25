@@ -32,7 +32,7 @@ export const Select: React.FC<PrimitiveSelectProps> = ({
   return (
     <PrimitiveSelect.Root value={value} onValueChange={onValueChange}>
       <PrimitiveSelect.Trigger
-        className={` h-11 w-full inline-flex items-center justify-between border border-gray-200 rounded-lg bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-all duration-200 disabled:cursor-not-allowed focus:border-blue-500 hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 placeholder-gray-500 ${className}  `}
+        className={`h-9 w-full inline-flex items-center justify-between border border-gray-200 rounded-lg bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-all duration-200 disabled:cursor-not-allowed focus:border-blue-500 hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 placeholder-gray-500 ${className}  `}
       >
         <PrimitiveSelect.Value placeholder={placeholder} />
         <PrimitiveSelect.Icon className="text-gray-400">
@@ -58,9 +58,6 @@ export const Select: React.FC<PrimitiveSelectProps> = ({
                 className="relative flex cursor-pointer select-none items-center rounded-md px-3 py-2 text-sm text-gray-900 outline-none data-[state=checked]:bg-blue-100 focus:bg-blue-50 hover:bg-blue-50 data-[state=checked]:text-blue-900 focus:text-blue-900 hover:text-blue-900"
               >
                 <PrimitiveSelect.ItemText>{option.label}</PrimitiveSelect.ItemText>
-                <PrimitiveSelect.ItemIndicator className="absolute right-2 flex items-center">
-                  <div className="h-2 w-2 rounded-full bg-blue-600" />
-                </PrimitiveSelect.ItemIndicator>
               </PrimitiveSelect.Item>
             ))}
           </PrimitiveSelect.Viewport>

@@ -1,223 +1,344 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useCallback, useEffect } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { DateUtils } from '~/lib/dateUtils';
 import { useResumeStore } from '~/stores/useResumeStore';
-import { Button, DatePicker, Select } from '../ui';
+import { Button, DatePicker, Input, Select } from '../ui';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/Form';
 
-export function OthersEditor() {
+// 定义 Language 表单的 Zod schema
+const languageSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, '语言名称不能为空'),
+  level: z.enum(['beginner', 'intermediate', 'advanced', 'native'], {
+    message: '请选择熟练程度',
+  }),
+});
+
+// 定义 Certificate 表单的 Zod schema
+const certificateSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, '证书名称不能为空'),
+  issuer: z.string().min(1, '颁发机构不能为空'),
+  date: z.string().min(1, '获得时间不能为空'),
+  url: z.string().url('请输入有效的URL').optional().or(z.literal('')),
+});
+
+type LanguageFormValues = z.infer<typeof languageSchema>;
+type CertificateFormValues = z.infer<typeof certificateSchema>;
+
+export const OthersEditor: React.FC = () => {
   const { resumeData, updateLanguages, updateCertificates } = useResumeStore();
+
+  // 使用 react-hook-form 管理语言表单
+  const languageForm = useForm<{
+    languages: LanguageFormValues[];
+  }>({
+    resolver: zodResolver(
+      z.object({
+        languages: z.array(languageSchema),
+      }),
+    ),
+    defaultValues: {
+      languages: resumeData.languages.map(lang => ({
+        ...lang,
+      })),
+    },
+    mode: 'onChange',
+  });
+
+  // 使用 react-hook-form 管理证书表单
+  const certificateForm = useForm<{
+    certificates: CertificateFormValues[];
+  }>({
+    resolver: zodResolver(
+      z.object({
+        certificates: z.array(certificateSchema),
+      }),
+    ),
+    defaultValues: {
+      certificates: resumeData.certificates.map(cert => ({
+        ...cert,
+        url: cert.url || '',
+      })),
+    },
+    mode: 'onChange',
+  });
+
+  // 使用 useFieldArray 管理动态的语言数组
+  const { fields: languageFields, append: appendLanguage, remove: removeLanguage } = useFieldArray({
+    control: languageForm.control,
+    name: 'languages',
+  });
+
+  // 使用 useFieldArray 管理动态的证书数组
+  const { fields: certificateFields, append: appendCertificate, remove: removeCertificate } = useFieldArray({
+    control: certificateForm.control,
+    name: 'certificates',
+  });
+
+  // 防抖函数
+  const debounce = (func: (...args: any[]) => void, wait: number) => {
+    let timeout: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+
+  // 防抖更新语言
+  const debouncedUpdateLanguages = useCallback(
+    debounce((values: LanguageFormValues[]) => {
+      updateLanguages(values as unknown as typeof resumeData.languages);
+    }, 300),
+    [updateLanguages],
+  );
+
+  // 防抖更新证书
+  const debouncedUpdateCertificates = useCallback(
+    debounce((values: CertificateFormValues[]) => {
+      updateCertificates(values as unknown as typeof resumeData.certificates);
+    }, 300),
+    [updateCertificates],
+  );
+
+  // 监听语言表单值变化，自动提交
+  useEffect(() => {
+    const subscription = languageForm.watch((value) => {
+      if (value.languages) {
+        debouncedUpdateLanguages(value.languages);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [languageForm, debouncedUpdateLanguages]);
+
+  // 监听证书表单值变化，自动提交
+  useEffect(() => {
+    const subscription = certificateForm.watch((value) => {
+      if (value.certificates) {
+        debouncedUpdateCertificates(value.certificates);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [certificateForm, debouncedUpdateCertificates]);
 
   /**
    * 添加新的语言
    */
   const addLanguage = () => {
-    const newLanguage = {
+    const newLanguage: LanguageFormValues = {
       id: Date.now().toString(),
       name: '',
-      level: 'intermediate' as const,
+      level: 'intermediate',
     };
-    updateLanguages([...resumeData.languages, newLanguage]);
+    appendLanguage(newLanguage);
+  };
+
+  /**
+   * 添加新的证书
+   */
+  const addCertificate = () => {
+    const newCertificate: CertificateFormValues = {
+      id: Date.now().toString(),
+      name: '',
+      issuer: '',
+      date: '',
+      url: '',
+    };
+    appendCertificate(newCertificate);
   };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-base text-gray-900 font-medium sm:text-lg">其他信息</h3>
+    <div className="grid gap-6">
+      <h3 className="text-base text-gray-900 font-medium">其他信息</h3>
 
       {/* 语言能力 */}
-      <div className="space-y-4">
+      <div className="grid gap-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm text-gray-800 font-medium sm:text-base">语言能力</h4>
+          <h4 className="text-sm text-gray-800 font-medium">语言能力</h4>
           <Button
-            onClick={() => {
-              const newLanguage = {
-                id: Date.now().toString(),
-                name: '',
-                level: 'intermediate' as const,
-              };
-              updateLanguages([...resumeData.languages, newLanguage]);
-            }}
-            variant="secondary"
+            onClick={addLanguage}
+            variant="outline"
             size="sm"
-            className="px-2 py-1.5 text-xs sm:px-3 sm:py-2 sm:text-sm"
           >
-            <div className="i-heroicons-plus h-3 w-3 sm:mr-1 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">添加语言</span>
+            <div className="i-heroicons-plus h-3 w-3 mr-1" />
+            <span className="text-sm">添加语言</span>
           </Button>
         </div>
 
-        {resumeData.languages.map(language => (
-          <div key={language.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h5 className="text-sm text-gray-900 font-medium">语言</h5>
-              <Button
-                onClick={() => {
-                  updateLanguages(resumeData.languages.filter(lang => lang.id !== language.id));
-                }}
-                variant="destructive"
-                size="sm"
-                title="删除语言"
-              >
-                <div className="i-heroicons-trash h-4 w-4" />
-              </Button>
-            </div>
+        <Form {...languageForm}>
+          <div className="grid grid-cols-1 gap-4">
+            {languageFields.map((field, index) => (
+              <div key={field.id} className="border border-gray-200 rounded-lg p-3">
+                <div className="mb-3 flex items-center justify-between">
+                  <h5 className="text-sm text-gray-900 font-medium">语言</h5>
+                  <Button
+                    onClick={() => removeLanguage(index)}
+                    variant="destructive"
+                    size="sm"
+                    title="删除语言"
+                  >
+                    <div className="i-heroicons-trash h-4 w-4" />
+                  </Button>
+                </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm text-gray-700 font-medium">
-                  语言名称
-                </label>
-                <input
-                  type="text"
-                  className="input"
-                  value={language.name}
-                  onChange={(e) => {
-                    const updated = resumeData.languages.map(item =>
-                      item.id === language.id ? { ...item, name: e.target.value } : item,
-                    );
-                    updateLanguages(updated);
-                  }}
-                  placeholder="如：英语、日语等"
-                />
-              </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={languageForm.control}
+                    name={`languages.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>语言名称</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="如：英语、日语等"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <div>
-                <label className="mb-1 block text-sm text-gray-700 font-medium">
-                  熟练程度
-                </label>
-                <Select
-                  value={language.level}
-                  onValueChange={(value) => {
-                    const updated = resumeData.languages.map(item =>
-                      item.id === language.id ? { ...item, level: value as 'beginner' | 'intermediate' | 'advanced' | 'native' } : item,
-                    );
-                    updateLanguages(updated);
-                  }}
-                  options={[
-                    { value: 'beginner', label: '初级' },
-                    { value: 'intermediate', label: '中级' },
-                    { value: 'advanced', label: '高级' },
-                    { value: 'native', label: '母语' },
-                  ]}
-                  placeholder="选择熟练程度"
-                />
+                  <FormField
+                    control={languageForm.control}
+                    name={`languages.${index}.level`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>熟练程度</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            options={[
+                              { value: 'beginner', label: '初级' },
+                              { value: 'intermediate', label: '中级' },
+                              { value: 'advanced', label: '高级' },
+                              { value: 'native', label: '母语' },
+                            ]}
+                            placeholder="选择熟练程度"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
+        </Form>
       </div>
 
       {/* 证书认证 */}
-      <div className="space-y-4">
+      <div className="grid gap-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm text-gray-800 font-medium sm:text-base">证书认证</h4>
+          <h4 className="text-sm text-gray-800 font-medium">证书认证</h4>
           <Button
-            onClick={() => {
-              const newCertificate = {
-                id: Date.now().toString(),
-                name: '',
-                issuer: '',
-                date: '',
-                url: '',
-              };
-              updateCertificates([...resumeData.certificates, newCertificate]);
-            }}
-            variant="secondary"
+            onClick={addCertificate}
+            variant="outline"
             size="sm"
-            className="px-2 py-1.5 text-xs sm:px-3 sm:py-2 sm:text-sm"
           >
-            <div className="i-heroicons-plus h-3 w-3 sm:mr-1 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">添加证书</span>
+            <div className="i-heroicons-plus h-3 w-3 mr-1" />
+            <span className="text-sm">添加证书</span>
           </Button>
         </div>
 
-        {resumeData.certificates.map(certificate => (
-          <div key={certificate.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h5 className="text-sm text-gray-900 font-medium">证书</h5>
-              <Button
-                onClick={() => {
-                  updateCertificates(resumeData.certificates.filter(cert => cert.id !== certificate.id));
-                }}
-                variant="destructive"
-                size="sm"
-                title="删除证书"
-              >
-                <div className="i-heroicons-trash h-4 w-4" />
-              </Button>
-            </div>
+        <Form {...certificateForm}>
+          <div className="grid grid-cols-1 gap-4">
+            {certificateFields.map((field, index) => (
+              <div key={field.id} className="border border-gray-200 rounded-lg p-3">
+                <div className="mb-3 flex items-center justify-between">
+                  <h5 className="text-sm text-gray-900 font-medium">证书</h5>
+                  <Button
+                    onClick={() => removeCertificate(index)}
+                    variant="destructive"
+                    size="sm"
+                    title="删除证书"
+                  >
+                    <div className="i-heroicons-trash h-4 w-4" />
+                  </Button>
+                </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm text-gray-700 font-medium">
-                  证书名称
-                </label>
-                <input
-                  type="text"
-                  className="input"
-                  value={certificate.name}
-                  onChange={(e) => {
-                    const updated = resumeData.certificates.map(item =>
-                      item.id === certificate.id ? { ...item, name: e.target.value } : item,
-                    );
-                    updateCertificates(updated);
-                  }}
-                  placeholder="如：AWS云从业者认证"
-                />
-              </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={certificateForm.control}
+                    name={`certificates.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>证书名称</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="如：AWS云从业者认证"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <div>
-                <label className="mb-1 block text-sm text-gray-700 font-medium">
-                  颁发机构
-                </label>
-                <input
-                  type="text"
-                  className="input"
-                  value={certificate.issuer}
-                  onChange={(e) => {
-                    const updated = resumeData.certificates.map(item =>
-                      item.id === certificate.id ? { ...item, issuer: e.target.value } : item,
-                    );
-                    updateCertificates(updated);
-                  }}
-                  placeholder="如：Amazon Web Services"
-                />
-              </div>
+                  <FormField
+                    control={certificateForm.control}
+                    name={`certificates.${index}.issuer`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>颁发机构</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="如：Amazon Web Services"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <div>
-                <label className="mb-1 block text-sm text-gray-700 font-medium">
-                  获得时间
-                </label>
-                <DatePicker
-                  value={DateUtils.toDate(certificate.date)}
-                  onChange={(value) => {
-                    const updated = resumeData.certificates.map(item =>
-                      item.id === certificate.id ? { ...item, date: value } : item,
-                    );
-                    updateCertificates(updated);
-                  }}
-                  placeholder="选择获得时间"
-                />
-              </div>
+                  <FormField
+                    control={certificateForm.control}
+                    name={`certificates.${index}.date`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>获得时间</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            value={DateUtils.toDate(field.value)}
+                            onChange={(value) => {
+                              field.onChange(value);
+                            }}
+                            placeholder="选择获得时间"
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <div>
-                <label className="mb-1 block text-sm text-gray-700 font-medium">
-                  证书链接（可选）
-                </label>
-                <input
-                  type="url"
-                  className="input"
-                  value={certificate.url}
-                  onChange={(e) => {
-                    const updated = resumeData.certificates.map(item =>
-                      item.id === certificate.id ? { ...item, url: e.target.value } : item,
-                    );
-                    updateCertificates(updated);
-                  }}
-                  placeholder="https://..."
-                />
+                  <FormField
+                    control={certificateForm.control}
+                    name={`certificates.${index}.url`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>证书链接（可选）</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="https://..."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
+        </Form>
       </div>
     </div>
   );
-}
+};

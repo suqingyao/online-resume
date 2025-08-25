@@ -36,7 +36,7 @@ function App() {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50">
+      <div className="h-screen bg-gray-50 flex flex-col w-full">
         <Header viewMode={viewMode} setViewMode={setViewMode} />
         <Main viewMode={viewMode} />
         <Footer />

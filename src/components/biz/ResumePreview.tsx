@@ -17,7 +17,7 @@ export const ResumePreview: React.FC = () => {
   return (
     <div
       id="resume-preview"
-      className="mx-auto max-w-4xl w-full bg-white shadow-lg"
+      className="mx-auto max-w-4xl w-full bg-white shadow-lg h-full"
       style={{
         width: '210mm',
         minHeight: '297mm',

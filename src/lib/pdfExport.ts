@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { createPdfCompatibleCss } from './colorUtils';
 
 /**
  * PDF导出配置接口
@@ -47,9 +48,31 @@ export async function exportToPDF(element: HTMLElement, options: ExportOptions =
     `;
     document.body.appendChild(loadingElement);
 
+    // 获取原始样式并转换oklch颜色为RGB格式
+    const styles = Array.from(document.styleSheets)
+      .map((styleSheet) => {
+        try {
+          return Array.from(styleSheet.cssRules)
+            .map(rule => rule.cssText)
+            .join('');
+        }
+        catch {
+          return '';
+        }
+      })
+      .join('');
+
+    const pdfCompatibleStyles = createPdfCompatibleCss(styles);
+
+    // 创建一个临时元素，包含转换后的样式
+    const tempElement = element.cloneNode(true) as HTMLElement;
+    const styleElement = document.createElement('style');
+    styleElement.textContent = pdfCompatibleStyles;
+    tempElement.insertBefore(styleElement, tempElement.firstChild);
+
     // 获取元素的实际尺寸
-    const rect = element.getBoundingClientRect();
-    const canvas = await html2canvas(element, {
+    const rect = tempElement.getBoundingClientRect();
+    const canvas = await html2canvas(tempElement, {
       scale: quality * 2, // 提高分辨率
       useCORS: true,
       allowTaint: true,
@@ -95,8 +118,9 @@ export async function exportToPDF(element: HTMLElement, options: ExportOptions =
     // 保存PDF
     pdf.save(filename);
 
-    // 移除加载状态
+    // 移除加载状态和临时元素
     document.body.removeChild(loadingElement);
+    tempElement.remove();
   }
   catch (error) {
     console.error('PDF导出失败:', error);
@@ -163,13 +187,16 @@ export function printResume(element: HTMLElement): void {
     })
     .join('');
 
+  // 转换CSS中的oklch颜色为RGB格式，以确保PDF导出兼容性
+  const pdfCompatibleStyles = createPdfCompatibleCss(styles);
+
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
       <head>
         <title>简历打印</title>
         <style>
-          ${styles}
+          ${pdfCompatibleStyles}
           @media print {
             body { margin: 0; }
             .no-print { display: none !important; }

@@ -54,7 +54,7 @@ export function Header({
   return (
     <header className=" bg-white shadow-sm sticky top-0 z-50 drop-shadow-xs">
       <div className="mx-auto max-w-7xl px-2 lg:px-8 sm:px-4">
-        <div className="h-14 flex items-center justify-between sm:h-16">
+        <div className="h-16 flex items-center justify-between">
           <div className="min-w-0 flex flex-1 items-center">
             <h1 className="truncate text-lg text-gray-900 font-bold md:text-2xl sm:text-xl">
               <span className="hidden sm:inline">Online Resume Editor</span>

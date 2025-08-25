@@ -68,15 +68,15 @@ export function ProfileEditor() {
   }, [form, debouncedUpdatePersonalInfo]);
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-base text-gray-900 font-medium sm:text-lg">个人信息</h3>
+    <div className="grid gap-4">
+      <h3 className="text-base text-gray-900 font-medium">个人信息</h3>
       <Form {...form}>
-        <form className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+        <form className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
-              <FormItem className="grid w-full max-w-sm items-center gap-3">
+              <FormItem className="flex flex-col gap-2">
                 <FormLabel>姓名</FormLabel>
                 <FormControl>
                   <Input
@@ -91,7 +91,7 @@ export function ProfileEditor() {
             control={form.control}
             name="title"
             render={({ field }) => (
-              <FormItem className="grid w-full max-w-sm items-center gap-3">
+              <FormItem className="flex flex-col gap-2">
                 <FormLabel>职位</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="请输入目标职位" />
@@ -103,7 +103,7 @@ export function ProfileEditor() {
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem className="grid w-full max-w-sm items-center gap-3">
+              <FormItem className="flex flex-col gap-2">
                 <FormLabel>邮箱</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="请输入邮箱地址" />
@@ -115,7 +115,7 @@ export function ProfileEditor() {
             control={form.control}
             name="phone"
             render={({ field }) => (
-              <FormItem className="grid w-full max-w-sm items-center gap-3">
+              <FormItem className="flex flex-col gap-2">
                 <FormLabel>电话</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="请输入联系电话" />
@@ -127,7 +127,7 @@ export function ProfileEditor() {
             control={form.control}
             name="location"
             render={({ field }) => (
-              <FormItem className="grid w-full max-w-sm items-center gap-3">
+              <FormItem className="flex flex-col gap-2">
                 <FormLabel>所在地</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="请输入所在城市" />
@@ -139,7 +139,7 @@ export function ProfileEditor() {
             control={form.control}
             name="website"
             render={({ field }) => (
-              <FormItem className="grid w-full max-w-sm items-center gap-3">
+              <FormItem className="flex flex-col gap-2">
                 <FormLabel>个人网站</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="请输入个人网站" />
@@ -151,7 +151,7 @@ export function ProfileEditor() {
             control={form.control}
             name="linkedin"
             render={({ field }) => (
-              <FormItem className="grid w-full max-w-sm items-center gap-3">
+              <FormItem className="flex flex-col gap-2">
                 <FormLabel>LinkedIn</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="LinkedIn 个人主页" />
@@ -163,7 +163,7 @@ export function ProfileEditor() {
             control={form.control}
             name="github"
             render={({ field }) => (
-              <FormItem className="grid w-full max-w-sm items-center gap-3">
+              <FormItem className="flex flex-col gap-2">
                 <FormLabel>GitHub</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="GitHub 个人主页" />
@@ -175,7 +175,7 @@ export function ProfileEditor() {
             control={form.control}
             name="summary"
             render={({ field }) => (
-              <FormItem className="grid sm:col-span-2 col-span-1 w-full items-center gap-3">
+              <FormItem className="col-span-2 flex flex-col gap-2 w-full">
                 <FormLabel>个人简介</FormLabel>
                 <FormControl>
                   <MarkdownEditor
